@@ -1,34 +1,56 @@
 import sys
+from list_generator import MIN_LEN
 
 class ExitWithMessage(Exception):
     pass
 
+INNER_ONLY = True
+
 try:
-    # 1. Load the states into a list 
     with open("states.txt") as s_file:
         states = [line.strip().lower() for line in s_file if line.strip()]
 
-    # 2. Load the words into a set
     with open("filtered_results.txt") as f:
         word_set = {line.strip().lower() for line in f if line.strip()}
 
-    # 3. Perform the logic
     with open("results.txt", "w") as out_file:
         for word in word_set:
-            # Check if word meets length requirement
-            if len(word) >= 7:
-                for state in states:
-                    # If the 2-letter state code is inside the word
-                    if state in word:
-                        # Remove the state code once
-                        new_word = word.replace(state, "", 1)
-                        
-                        # See if the remaining letters form another word in our list
-                        if new_word in word_set:
-                            print(f"Original: {word} | Removed: {state} | Result: {new_word}", file=out_file)
+            if len(word) >= MIN_LEN:
+                # Determine which part of the word we are allowed to search
+                if INNER_ONLY:
+                    start = word[0]
+                    middle_part = word[1:-1]
+                    end = word[-1]
+                else:
+                    middle_part = word
+
+                for state_to_remove in states:
+                    if state_to_remove in middle_part:
+                        for state_to_add in states:
+                            if state_to_remove == state_to_add:
+                                continue 
+                            
+                            # Logic: Letters must differ at both positions
+                            if state_to_remove[0] == state_to_add[0] or state_to_remove[1] == state_to_add[1]:
+                                continue
+                                
+                            # Create the new middle and reassemble the word
+                            new_middle = middle_part.replace(state_to_remove, state_to_add, 1)
+                            
+                            if INNER_ONLY:
+                                new_word = start + new_middle + end
+                            else:
+                                new_word = new_middle
+                            
+                            # Final validation
+                            if new_word in word_set:
+                                # Prevents printing the same pair twice (A->B and B->A)
+                                if word < new_word:
+                                    print(f"Original: {word} | Swapped: {state_to_remove}->{state_to_add} | Result: {new_word}", file=out_file)
 
 except FileNotFoundError:
-    print("Error: One of the required files (states.txt or filtered_results.txt) is missing.")
-    raise ExitWithMessage()
-except ExitWithMessage:
+    print("Error: Required files missing.")
+    sys.exit()
+except Exception as e:
+    print(f"An error occurred: {e}")
     sys.exit()
