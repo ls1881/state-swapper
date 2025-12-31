@@ -21,15 +21,15 @@ try:
     # Open your word list file in read-only mode.
     # If it isn't in current directory, specify full path using forward slash ("/") not backslash.
 
-    with open("XwiWordList.dict") as f:
-        for line in f:
+    with open("XwiWordList.dict") as f_in, open("filtered_results.txt", "w") as f_out:
+        for line in f_in:
             parts = line.split(';') # Split the line into parts, using ";" as the delimiter
             word = parts[0].strip() # Get the first part of the line, the word before ";"
             score = int(parts[1])   # Score isn't used here but this is how you get it
             
             # Check score is >= MIN_SCORE and word length is >= MIN_LEN
             if score >= MIN_SCORE and len(word) >= MIN_LEN:
-                print(word)
+                print(word, file=f_out) # Write the word to the output file
 
 except ExitWithMessage:
     sys.exit()
