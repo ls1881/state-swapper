@@ -1,4 +1,4 @@
-# quantum-states
+# state-swapper
 Takes a wordlist and identifies all entries that form
 another entry when two letters are swapped, i.e. a state
 postal code from states.txt. Only selecting for inner
